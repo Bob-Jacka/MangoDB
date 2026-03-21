@@ -1,2 +1,3 @@
 # BQL
-Small database for "Book query language"
+
+Small database for "Book query language", ex. Kindle history module
