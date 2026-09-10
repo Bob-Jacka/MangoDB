@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel", "build"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "DB_specification"
+name = "db_specification"
 version = "0.0.1"
 description = "Api specification for databases"
 readme = "README.md"

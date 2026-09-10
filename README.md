@@ -15,6 +15,6 @@ python -m build --wheel
 2) To install library:
 
 ```bash
-pip install common-py-lib
+pip install db_specification
 ```
    
