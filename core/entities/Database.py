@@ -1,9 +1,9 @@
 import os
 import types
 
-from core.entities.console.Database_entities.Table import _Table
+from core.data.Wrappers import cancelable_operation, log
+from core.entities.Table import Table
 from core.exceptions.DatabaseException import DatabaseException
-from data.Wrappers import cancelable_operation, log
 
 
 class Database:
@@ -12,7 +12,7 @@ class Database:
     Contains tables and actions with them.
     """
 
-    __tables: list[_Table]  # container for tables in database
+    __tables: list[Table]  # container for tables in database
 
     def __init__(self, database_name: str):
         self.database_name: str = database_name
@@ -22,7 +22,7 @@ class Database:
         else:
             pass
 
-    def __find_table(self, predicate) -> _Table:
+    def find_table(self, predicate) -> Table:
         """
         Inner method of finding table in database.
         :param predicate: predicate function for comparison, should take _Table object and return bool value.
@@ -39,21 +39,21 @@ class Database:
             raise DatabaseException(f'Given predicate {predicate} is not a function')
 
     @cancelable_operation
-    def _create_table(self, table_name: str) -> None:
+    def create_table(self, table_name: str) -> None:
         """
         Creates new file, called table in terms of book database.
         :return: None
         """
         try:
-            new_table = _Table(table_name)
+            new_table = Table(table_name)
             self.__tables.append(new_table)
         except Exception as e:
             print(f'An exception occurred during creating table - {e}')
 
     @cancelable_operation
-    def _delete_table(self, table_name: str) -> None:
+    def delete_table(self, table_name: str) -> None:
         if not len(self.__tables):
-            self.__tables.remove(self.__find_table(lambda x: x.get_table_name() == table_name))
+            self.__tables.remove(self.find_table(lambda x: x.get_table_name() == table_name))
         else:
             raise DatabaseException(f'Error during deleting table with given name {table_name}')
 

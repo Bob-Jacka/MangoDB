@@ -1,7 +1,7 @@
 from typing import Literal
 
 
-class _Record:
+class Record:
     """
     Quant of book database storage table.
     Record consists of the next columns:

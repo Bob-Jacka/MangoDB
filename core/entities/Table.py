@@ -1,35 +1,32 @@
 import os
 import re
 from typing import (
-    Generic,
-    TypeVar,
     Optional
 )
 
-from core.entities.console.Database_entities.Record import _Record
-from core.exceptions.DatabaseException import DatabaseException
-from data.Wrappers import (
+from core.entities.Record import Record
+from core.data.Wrappers import (
     cancelable_operation,
     log
 )
 
-T = TypeVar('T')
+from core.exceptions.DatabaseException import DatabaseException
 
 
-class _Table(Generic[T]):
+class Table:
     """
     Quant of book database storage.
     """
 
     def __init__(self, table_name: str):
         self.table_name = table_name
-        self.__inner_table: list[_Record] = list()
+        self.__inner_table: list[Record] = list()
         self.__init_table()
 
     def get_table_name(self) -> str:
         return self.table_name
 
-    def get_records(self) -> list[_Record]:
+    def get_records(self) -> list[Record]:
         """
         Get all records from table.
         :return: List of records
@@ -37,7 +34,7 @@ class _Table(Generic[T]):
         return self.__inner_table
 
     @cancelable_operation
-    def add_record(self, record: _Record) -> None:
+    def add_record(self, record: Record) -> None:
         """
         Add record to table.
         :param record: Record object to add
@@ -146,7 +143,7 @@ class _Table(Generic[T]):
         self.__save_table()
 
     @log
-    def select_records(self, params: Optional[dict] = None) -> list[_Record]:
+    def select_records(self, params: Optional[dict] = None) -> list[Record]:
         """
         Select records from table.
         :param params: Optional filter parameters
@@ -178,7 +175,7 @@ class _Table(Generic[T]):
         return result
 
     @log
-    def select_by_pattern(self, pattern: str) -> list[_Record]:
+    def select_by_pattern(self, pattern: str) -> list[Record]:
         """
         Select records matching regex pattern.
         :param pattern: Regex pattern for book name
@@ -199,7 +196,7 @@ class _Table(Generic[T]):
         return len(self.__inner_table)
 
     @log
-    def find_record_by_name(self, name: str) -> Optional[_Record]:
+    def find_record_by_name(self, name: str) -> Optional[Record]:
         """
         Find record by book name.
         :param name: Book name to search
@@ -211,7 +208,7 @@ class _Table(Generic[T]):
         return None
 
     @log
-    def find_record_by_id(self, record_id: int) -> Optional[_Record]:
+    def find_record_by_id(self, record_id: int) -> Optional[Record]:
         """
         Find record by ID.
         :param record_id: Record identifier
@@ -244,7 +241,7 @@ class _Table(Generic[T]):
         except Exception as e:
             raise DatabaseException(f'Error saving table: {e}')
 
-    def __load_table(self) -> None:
+    def load_table(self) -> None:
         """
         Load table from file.
         """
@@ -256,7 +253,7 @@ class _Table(Generic[T]):
                 for line in f:
                     parts = line.strip().split('|')
                     if len(parts) >= 5:
-                        record = _Record(
+                        record = Record(
                             identifier=int(parts[0]),
                             book_name=parts[1],
                             book_category=parts[2],

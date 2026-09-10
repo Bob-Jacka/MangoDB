@@ -3,20 +3,19 @@ BQL (Book query language) is used in book database module.
 Dummy syntax interpreter for BQ language in this file
 """
 
-from typing import (
-    Final,
-    Literal
-)
-
+import re
 from core.entities.console.Database_entities.Database import Database
-from core.exceptions.DatabaseException import SyntaxInterpreterException
 from data.Wrappers import (
     log,
     cancelable_operation
 )
-
-import re
+from typing import (
+    Final,
+    Literal
+)
 from typing import Optional
+
+from core.exceptions.DatabaseException import SyntaxInterpreterException
 
 
 class Syntax_interpreter:
@@ -218,7 +217,7 @@ class Syntax_interpreter:
                 db_params = self.__extract_entity_params(lexemes, 'Database')
 
                 database = self.__find_database(db_params.get('name')) if db_params else self.__get_current_database()
-                database._delete_table(table_params.get('name'))
+                database.delete_table(table_params.get('name'))
 
         except Exception as e:
             raise SyntaxInterpreterException(f'Delete parsing error: {e}')
@@ -256,7 +255,7 @@ class Syntax_interpreter:
                 if database is None:
                     raise SyntaxInterpreterException('No database selected')
 
-                database._create_table(table_name)
+                database.create_table(table_name)
 
             elif 'Record(' in sentence:
                 record_params = self.__extract_entity_params(lexemes, 'Record')

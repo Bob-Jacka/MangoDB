@@ -1,3 +1,20 @@
-# BQL
+# DB_api specification
 
-Small database for "Book query language", ex. Kindle history module
+Custom specification for custom databases
+
+Version: 0.0.1
+
+## Commands:
+
+1) To build library:
+
+```bash
+python -m build --wheel
+```
+
+2) To install library:
+
+```bash
+pip install common-py-lib
+```
+   
