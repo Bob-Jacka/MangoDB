@@ -1,10 +1,11 @@
 class Entity_adapter:
     """
-    Adapter class for converting from kindle history entity to database or vice versa.
+    Adapter class for converting to database entities or vice versa.
     """
 
-    def __init__(self, source_entity, **adapted_methods):
+    def __init__(self, source_entity, new_type, **adapted_methods):
         self.source = source_entity
+        self.new_type = new_type
         self.__dict__.update(adapted_methods)
 
     def __getattr__(self, attr):
@@ -21,21 +22,13 @@ class Entity_adapter:
         Return true if kindle history entity or false otherwise
         :return: boolean
         """
-        from core.entities.console.Kindle_history_entities.Book_data import Book_data
-        if isinstance(self.source, Book_data):
+        if isinstance(self.source, self.new_type):
             return True
         return False
 
-    def convert_to_history_entity(self):
-        from core.entities.console.Kindle_history_entities.Book_data import Book_data
-        if self.__check_for_type():
-            return self.source
-        else:
-            Book_data()
-
     def convert_to_database_entity(self):
-        from core.entities.console.Database_entities.Record import _Record
+        from specification.v1.entities.Record import Record
         if not self.__check_for_type():
             return self.source
         else:
-            _Record()
+            return Record()

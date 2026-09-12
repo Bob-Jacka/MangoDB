@@ -1,6 +1,8 @@
 """
 Module that responsible for interaction with file system on your pc
 """
+from abc import ABC, abstractmethod
+
 
 class Csv_helper:
     pass
@@ -14,17 +16,21 @@ class Yaml_helper:
     pass
 
 
-class File_controller:
+class File_controller(ABC):
 
+    @abstractmethod
     def create_log_file(self, log_file_name: str):
         pass
 
+    @abstractmethod
     def __update_data_json(self):
         pass
 
+    @abstractmethod
     def __update_data_yaml(self):
         pass
 
+    @abstractmethod
     def write_to_storage(self, record):
         """
         Entry point to file controller class to write data to storage.
