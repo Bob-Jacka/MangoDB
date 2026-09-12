@@ -4,21 +4,21 @@ Dummy syntax interpreter for BQ language in this file
 """
 
 import re
-from core.entities.console.Database_entities.Database import Database
-from data.Wrappers import (
-    log,
-    cancelable_operation
-)
+from abc import abstractmethod, ABC
 from typing import (
-    Final,
-    Literal
+    Final
 )
 from typing import Optional
 
-from core.exceptions.DatabaseException import SyntaxInterpreterException
+from specification.v1.data.Wrappers import (
+    log,
+    cancelable_operation
+)
+from specification.v1.entities.Database import Database
+from specification.v1.exceptions.DatabaseException import SyntaxInterpreterException
 
 
-class Syntax_interpreter:
+class Syntax_interpreter(ABC):
     """
     Class responsible for syntax interpretation in interactive (or not) mode.
     Interpreter for BQL (book query language).
@@ -45,14 +45,14 @@ class Syntax_interpreter:
         'add': tuple(('add', 'add record to the table, require table name (cancelable operation)')),
 
         # embedded functions to use:
-        'sync': tuple(('sync', 'synchronize records between your local pc and e-book')),
+        'sync': tuple(('sync', 'synchronize records between your local devices')),
 
         'reg': tuple(('reg', 'word for regular expressions, take string object as a parameter and find string')),
 
         'count': tuple(('count', 'count books')),
 
         # other words:
-        'help': tuple(('help', 'special operator for help users in their usage of BQL syntax')),
+        'help': tuple(('help', 'special operator for help users in their usage of syntax')),
         'all': tuple(('all', 'special word for selecting or deleting all records in database')),
         'in': tuple(('in', 'like "from" word in sql')),
         'using': tuple(('using', 'use this word for use database as a main database')),
@@ -63,15 +63,15 @@ class Syntax_interpreter:
         'Record': tuple(('record', 'word for record in table'))
     }
     """
-    Examples of BQL syntax:
+    Examples of syntax:
     1. choose <record> in <table_name> (select statement)
-        1.1 choose Record(name="1984", <optional book type>, <optional read time>) in Table(name="customers")
-        1.2 CHOOSE RECORD(name="some book") in Table(name="books") (Operators can be in upper or lower case)
+        1.1 choose Record(name="1984", <optional entity type>, <optional read time>) in Table(name="customers")
+        1.2 CHOOSE RECORD(name="some entity") in Table(name="entity") (Operators can be in upper or lower case)
         
     2. delete <record> in <table_name> (delete statement)
-        delete Record(name="Harry potter", <optional book type>, <optional read time>) in Table(name="customers")
+        delete Record(name="Harry potter", <optional entity type>, <optional read time>) in Table(name="customers")
         
-    3. sync (synchronize data between database and e-book, require no parameters)
+    3. sync (synchronize data between database and device, require no parameters)
     
     4. create Table(name=<required parameters name>) in Database(name=<db_name>) - (creates table with given parameters)
         4.1 create Database(name=standard_db)
@@ -108,9 +108,10 @@ class Syntax_interpreter:
             print(f'An exception occurred while creating database - {e}')
 
     @cancelable_operation
+    @abstractmethod
     def synchronize(self) -> None:
         """
-        Method for synchronizing e-book files and database tables
+        Method for synchronizing device files and database tables
         :return: None
         """
         pass
@@ -125,8 +126,8 @@ class Syntax_interpreter:
     @log
     def parse_sentence(self, sentence: str) -> None:
         """
-        Parse given sentence in book query language and invoke functions.
-        :param sentence: string sentence in book query language.
+        Parse given sentence in entity query language and invoke functions.
+        :param sentence: string sentence in entity query language.
         :return: None
         """
         lexemes = sentence.split(' ')
@@ -347,9 +348,9 @@ class Syntax_interpreter:
             if table is None:
                 raise SyntaxInterpreterException(f'Table not found: {table_name}')
 
-            from core.entities.console.Database_entities.Record import _Record
+            from specification.v1.entities.Record import Record
 
-            new_record = _Record(
+            new_record = Record(
                 identifier=self.__generate_id(table),
                 book_name=record_params.get('name', ''),
                 book_category=record_params.get('category', ''),
@@ -413,7 +414,7 @@ class Syntax_interpreter:
         for record in records:
             match = True
             for key, value in params.items():
-                if key == 'name' and record.book_name != value:
+                if key == 'name' and record.title != value:
                     match = False
                 elif key == 'category' and record.book_category != value:
                     match = False
@@ -429,9 +430,9 @@ class Syntax_interpreter:
         """
         Create and add record to table.
         """
-        from core.entities.console.Database_entities.Record import _Record
+        from specification.v1.entities.Record import Record
 
-        record = _Record(
+        record = Record(
             identifier=self.__generate_id(table),
             book_name=params.get('name', ''),
             book_category=params.get('category', ''),
@@ -475,10 +476,6 @@ class Syntax_interpreter:
         raise SyntaxInterpreterException(f'Invalid regex syntax: {value}')
 
     @log
-    def test_interpreter(self):
-        return "Hello from interpreter"
-
-    @log
     def print_help(self):
         print('This module is responsible for database functionality')
         print('Here are words that used')
@@ -491,13 +488,13 @@ class Syntax_interpreter:
         Can be used in web interface (auto mode) or console without interactive interpreter;
         """
 
-        @log
         @staticmethod
+        @log
         def update_record() -> str:
             return f''
 
-        @log
         @staticmethod
+        @log
         def add_record_exp1(rec_name: str, table_name: str) -> str:
             """
             Add record with lite parameters, only name
@@ -507,10 +504,9 @@ class Syntax_interpreter:
             """
             return f'add Record(name={rec_name} in Table(name={table_name})'
 
-        @log
         @staticmethod
-        def add_record_exp2(rec_name: str, book_author: str,
-                            book_type: Literal['text', 'audio'],
+        @log
+        def add_record_exp2(rec_name: str,
                             table_name: str) -> str:
             """
             Full version of record add, with all parameters
@@ -522,7 +518,7 @@ class Syntax_interpreter:
             """
             return f'add Record(name={rec_name} in Table(name={table_name})'
 
-        @log
         @staticmethod
+        @log
         def remove_record() -> str:
             return f''

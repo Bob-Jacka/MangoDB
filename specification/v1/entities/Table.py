@@ -1,19 +1,20 @@
 import os
 import re
+from abc import ABC, abstractmethod
 from typing import (
     Optional
 )
 
-from core.entities.Record import Record
-from core.data.Wrappers import (
+from specification.v1.entities.Record import Record
+from specification.v1.data.Wrappers import (
     cancelable_operation,
     log
 )
 
-from core.exceptions.DatabaseException import DatabaseException
+from specification.v1.exceptions.DatabaseException import DatabaseException
 
 
-class Table:
+class Table(ABC):
     """
     Quant of book database storage.
     """
@@ -34,6 +35,7 @@ class Table:
         return self.__inner_table
 
     @cancelable_operation
+    @abstractmethod
     def add_record(self, record: Record) -> None:
         """
         Add record to table.
@@ -46,6 +48,7 @@ class Table:
             raise DatabaseException(f'Error adding record: {e}')
 
     @cancelable_operation
+    @abstractmethod
     def update_record(self, params: dict) -> None:
         """
         Update record by name.
@@ -55,20 +58,10 @@ class Table:
         if not record_name:
             raise DatabaseException('Record name required for update')
 
-        for record in self.__inner_table:
-            if record.book_name == record_name:
-                if 'category' in params:
-                    record.book_category = params['category']
-                if 'read_date' in params:
-                    record.read_date = params['read_date']
-                if 'type' in params:
-                    record.type = params['type']
-                self.__save_table()
-                return
-
         raise DatabaseException(f'Record not found: {record_name}')
 
     @cancelable_operation
+    @abstractmethod
     def update_record_by_pattern(self, pattern: str, params: dict) -> None:
         """
         Update records matching regex pattern.
@@ -98,6 +91,7 @@ class Table:
             raise DatabaseException(f'Invalid regex pattern: {e}')
 
     @cancelable_operation
+    @abstractmethod
     def delete_record(self, params: dict) -> None:
         """
         Delete record by parameters.
@@ -105,12 +99,12 @@ class Table:
         """
         record_name = params.get('name')
 
+        if not record_name:
+            raise DatabaseException('Record name required for deletion')
+
         if record_name == 'all':
             self.delete_all_records()
             return
-
-        if not record_name:
-            raise DatabaseException('Record name required for deletion')
 
         for i, record in enumerate(self.__inner_table):
             if record.book_name == record_name:
@@ -124,7 +118,7 @@ class Table:
     def delete_record_by_id(self, record_id: int) -> None:
         """
         Delete record by ID.
-        :param record_id: Record identifier
+        :param record_id: Record identifier (int)
         """
         for i, record in enumerate(self.__inner_table):
             if record.id == record_id:
@@ -143,6 +137,7 @@ class Table:
         self.__save_table()
 
     @log
+    @abstractmethod
     def select_records(self, params: Optional[dict] = None) -> list[Record]:
         """
         Select records from table.

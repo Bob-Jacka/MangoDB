@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "db_specification"
-version = "0.0.1"
+version = "1.0.0"
 description = "Api specification for databases"
 readme = "README.md"
 license = { text = "MIT" }
@@ -19,11 +19,11 @@ dependencies = [
 ]
 
 [project.scripts]
-test = "core.cli:test"
+test = "specification.cli:test"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["core"]
+include = ["specification"]
 
 [tool.pytest.ini_options]
 markers = [

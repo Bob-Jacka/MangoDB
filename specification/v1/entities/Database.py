@@ -1,14 +1,15 @@
 import os
 import types
+from abc import ABC, abstractmethod
 
-from core.data.Wrappers import cancelable_operation, log
-from core.entities.Table import Table
-from core.exceptions.DatabaseException import DatabaseException
+from specification.v1.data.Wrappers import cancelable_operation, log
+from specification.v1.entities.Table import Table
+from specification.v1.exceptions.DatabaseException import DatabaseException
 
 
-class Database:
+class Database(ABC):
     """
-    Upper level entity in book_db.
+    Upper level entity in Specification.
     Contains tables and actions with them.
     """
 
@@ -22,11 +23,11 @@ class Database:
         else:
             pass
 
-    def find_table(self, predicate) -> Table:
+    def find_table(self, predicate) -> Table | None:
         """
         Inner method of finding table in database.
         :param predicate: predicate function for comparison, should take _Table object and return bool value.
-        :return: Table object that equals predicate.
+        :return: Table object that equals predicate or None in case of error.
         """
         table_to_return = None
         if isinstance(predicate, types.FunctionType):
@@ -36,19 +37,19 @@ class Database:
                     break
             return table_to_return
         else:
-            raise DatabaseException(f'Given predicate {predicate} is not a function')
+            raise DatabaseException(f'Given predicate "{predicate}" is not a function')
 
     @cancelable_operation
     def create_table(self, table_name: str) -> None:
         """
-        Creates new file, called table in terms of book database.
+        Creates new file, called table in terms of database.
         :return: None
         """
         try:
             new_table = Table(table_name)
             self.__tables.append(new_table)
         except Exception as e:
-            print(f'An exception occurred during creating table - {e}')
+            print(f'An exception occurred during creating table: {e}')
 
     @cancelable_operation
     def delete_table(self, table_name: str) -> None:
@@ -61,9 +62,10 @@ class Database:
         if not len(self.__tables) == 0:
             return self.__tables
         else:
-            raise DatabaseException('')
+            raise DatabaseException('Error in get tables')
 
     @log
+    @abstractmethod
     def __init_database(self):
         """
         Create database and initialize database architecture by creating folders (tables)
