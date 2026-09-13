@@ -1,4 +1,4 @@
 from specification.v1 import AbstractModule
-from specification.v1 import data
-from specification.v1 import entities
-from specification.v1 import exceptions
+from specification.v1.data import *
+from specification.v1.entities import *
+from specification.v1.exceptions import *

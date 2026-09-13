@@ -1,5 +1,6 @@
-class Entity_adapter:
+class Entity_adapter[R]:
     """
+    R - means record type
     Adapter class for converting to database entities or vice versa.
     """
 
@@ -27,8 +28,7 @@ class Entity_adapter:
         return False
 
     def convert_to_database_entity(self):
-        from specification.v1.entities.Record import Record
         if not self.__check_for_type():
             return self.source
         else:
-            return Record()
+            return R()

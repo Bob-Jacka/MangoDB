@@ -1,20 +1,18 @@
 import os
-import re
 from abc import ABC, abstractmethod
 from typing import (
     Optional
 )
 
-from specification.v1.entities.Record import Record
 from specification.v1.data.Wrappers import (
     cancelable_operation,
     log
 )
-
+from specification.v1.entities.Record import Record
 from specification.v1.exceptions.DatabaseException import DatabaseException
 
 
-class Table(ABC):
+class Table[R](ABC):
     """
     Quant of book database storage.
     """
@@ -35,7 +33,6 @@ class Table(ABC):
         return self.__inner_table
 
     @cancelable_operation
-    @abstractmethod
     def add_record(self, record: Record) -> None:
         """
         Add record to table.
@@ -54,11 +51,7 @@ class Table(ABC):
         Update record by name.
         :param params: Dictionary with name and fields to update
         """
-        record_name = params.get('name')
-        if not record_name:
-            raise DatabaseException('Record name required for update')
-
-        raise DatabaseException(f'Record not found: {record_name}')
+        pass
 
     @cancelable_operation
     @abstractmethod
@@ -68,27 +61,7 @@ class Table(ABC):
         :param pattern: Regex pattern to match record names
         :param params: Fields to update
         """
-        try:
-            regex = re.compile(pattern)
-            updated = 0
-
-            for record in self.__inner_table:
-                if regex.search(record.book_name):
-                    if 'category' in params:
-                        record.book_category = params['category']
-                    if 'read_date' in params:
-                        record.read_date = params['read_date']
-                    if 'type' in params:
-                        record.type = params['type']
-                    updated += 1
-
-            if updated > 0:
-                self.__save_table()
-            else:
-                raise DatabaseException(f'No records matching pattern: {pattern}')
-
-        except re.error as e:
-            raise DatabaseException(f'Invalid regex pattern: {e}')
+        pass
 
     @cancelable_operation
     @abstractmethod
@@ -97,36 +70,16 @@ class Table(ABC):
         Delete record by parameters.
         :param params: Dictionary with record identification
         """
-        record_name = params.get('name')
-
-        if not record_name:
-            raise DatabaseException('Record name required for deletion')
-
-        if record_name == 'all':
-            self.delete_all_records()
-            return
-
-        for i, record in enumerate(self.__inner_table):
-            if record.book_name == record_name:
-                self.__inner_table.pop(i)
-                self.__save_table()
-                return
-
-        raise DatabaseException(f'Record not found: {record_name}')
+        pass
 
     @cancelable_operation
+    @abstractmethod
     def delete_record_by_id(self, record_id: int) -> None:
         """
         Delete record by ID.
         :param record_id: Record identifier (int)
         """
-        for i, record in enumerate(self.__inner_table):
-            if record.id == record_id:
-                self.__inner_table.pop(i)
-                self.__save_table()
-                return
-
-        raise DatabaseException(f'Record with ID {record_id} not found')
+        pass
 
     @cancelable_operation
     def delete_all_records(self) -> None:
@@ -144,43 +97,17 @@ class Table(ABC):
         :param params: Optional filter parameters
         :return: List of matching records
         """
-        if params is None:
-            return self.__inner_table
-
-        result = []
-        for record in self.__inner_table:
-            match = True
-
-            if 'name' in params:
-                if params['name'] != record.book_name:
-                    match = False
-            if 'category' in params and match:
-                if params['category'] != record.book_category:
-                    match = False
-            if 'type' in params and match:
-                if params['type'] != record.type:
-                    match = False
-            if 'read_date' in params and match:
-                if params['read_date'] != record.read_date:
-                    match = False
-
-            if match:
-                result.append(record)
-
-        return result
+        pass
 
     @log
+    @abstractmethod
     def select_by_pattern(self, pattern: str) -> list[Record]:
         """
         Select records matching regex pattern.
         :param pattern: Regex pattern for book name
         :return: List of matching records
         """
-        try:
-            regex = re.compile(pattern)
-            return [r for r in self.__inner_table if regex.search(r.book_name)]
-        except re.error as e:
-            raise DatabaseException(f'Invalid regex pattern: {e}')
+        pass
 
     @log
     def count_records(self) -> int:
@@ -191,28 +118,24 @@ class Table(ABC):
         return len(self.__inner_table)
 
     @log
+    @abstractmethod
     def find_record_by_name(self, name: str) -> Optional[Record]:
         """
         Find record by book name.
         :param name: Book name to search
         :return: Record or None
         """
-        for record in self.__inner_table:
-            if record.book_name == name:
-                return record
-        return None
+        pass
 
     @log
+    @abstractmethod
     def find_record_by_id(self, record_id: int) -> Optional[Record]:
         """
         Find record by ID.
         :param record_id: Record identifier
         :return: Record or None
         """
-        for record in self.__inner_table:
-            if record.id == record_id:
-                return record
-        return None
+        pass
 
     def __init_table(self) -> None:
         """
@@ -224,6 +147,7 @@ class Table(ABC):
         else:
             print('Table already exists')
 
+    @abstractmethod
     def __save_table(self) -> None:
         """
         Save table to file.
@@ -248,19 +172,13 @@ class Table(ABC):
                 for line in f:
                     parts = line.strip().split('|')
                     if len(parts) >= 5:
-                        record = Record(
-                            identifier=int(parts[0]),
-                            book_name=parts[1],
-                            book_category=parts[2],
-                            read_date=parts[3],
-                            book_type=parts[4]
-                        )
+                        record = R()
                         self.__inner_table.append(record)
         except Exception as e:
-            raise DatabaseException(f'Error loading table: {e}')
+            raise DatabaseException(f'Error loading table: "{e}"')
 
     def __str__(self) -> str:
-        return f'Table(name={self.table_name}, records={len(self.__inner_table)})'
+        return f'Table(name={self.table_name}, records={self.__inner_table})'
 
     def __repr__(self) -> str:
         return self.__str__()

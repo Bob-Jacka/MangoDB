@@ -7,7 +7,7 @@ from specification.v1.entities.Table import Table
 from specification.v1.exceptions.DatabaseException import DatabaseException
 
 
-class Database(ABC):
+class Database[T](ABC):
     """
     Upper level entity in Specification.
     Contains tables and actions with them.
@@ -23,7 +23,7 @@ class Database(ABC):
         else:
             pass
 
-    def find_table(self, predicate) -> Table | None:
+    def find_table_by_predicate(self, predicate) -> Table | None:
         """
         Inner method of finding table in database.
         :param predicate: predicate function for comparison, should take _Table object and return bool value.
@@ -39,6 +39,14 @@ class Database(ABC):
         else:
             raise DatabaseException(f'Given predicate "{predicate}" is not a function')
 
+    def find_table_by_name(self, table_name: str) -> Table | None:
+        table_to_return = None
+        for table in self.__tables:
+            if table.table_name == table_name:
+                table_to_return = table
+                break
+        return table_to_return
+
     @cancelable_operation
     def create_table(self, table_name: str) -> None:
         """
@@ -46,19 +54,22 @@ class Database(ABC):
         :return: None
         """
         try:
-            new_table = Table(table_name)
-            self.__tables.append(new_table)
+            if isinstance(T, Table):
+                new_table = T(table_name)
+                self.__tables.append(new_table)
+            else:
+                raise Exception('Unknown Table type')
         except Exception as e:
             print(f'An exception occurred during creating table: {e}')
 
     @cancelable_operation
     def delete_table(self, table_name: str) -> None:
         if not len(self.__tables):
-            self.__tables.remove(self.find_table(lambda x: x.get_table_name() == table_name))
+            self.__tables.remove(self.find_table_by_predicate(lambda x: x.get_table_name() == table_name))
         else:
             raise DatabaseException(f'Error during deleting table with given name {table_name}')
 
-    def get_tables(self):
+    def get_all_tables(self) -> list[Table]:
         if not len(self.__tables) == 0:
             return self.__tables
         else:

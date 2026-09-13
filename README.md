@@ -2,7 +2,7 @@
 
 Custom specification for custom databases to use custom actions
 
-Version: 1.0.0
+Version: 1.1.0
 
 ## Commands:
 

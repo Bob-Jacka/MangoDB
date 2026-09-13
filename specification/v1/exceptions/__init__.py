@@ -1,2 +1,0 @@
-from specification.v1.exceptions import DatabaseException
-from specification.v1.exceptions import FileControllerException

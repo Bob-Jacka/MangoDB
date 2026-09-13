@@ -3,8 +3,8 @@ requires = ["setuptools>=61.0", "wheel", "build"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "db_specification"
-version = "1.0.0"
+name = "Specification"
+version = "1.1.0"
 description = "Api specification for databases"
 readme = "README.md"
 license = { text = "MIT" }
@@ -23,7 +23,7 @@ test = "specification.cli:test"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["specification"]
+include = ["specification*"]
 
 [tool.pytest.ini_options]
 markers = [

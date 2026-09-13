@@ -4,7 +4,6 @@ Dummy syntax interpreter for BQ language in this file
 """
 
 import re
-from abc import abstractmethod, ABC
 from typing import (
     Final
 )
@@ -18,10 +17,13 @@ from specification.v1.entities.Database import Database
 from specification.v1.exceptions.DatabaseException import SyntaxInterpreterException
 
 
-class Syntax_interpreter(ABC):
+class Syntax_interpreter[D, T, R]:
     """
+    D: means database,
+    T: Table class,
+    R: Record class
     Class responsible for syntax interpretation in interactive (or not) mode.
-    Interpreter for BQL (book query language).
+    Interpreter for Custom query language.
     Map contains key for fast retrieving element and tuple with two fields, where first field is syntax word
     and second field is help description for words and its usage.
             Order of execution:
@@ -91,8 +93,7 @@ class Syntax_interpreter(ABC):
     table named math and limit by 10 records"""
 
     def __init__(self):
-        # Interpreter entities init:
-        self.databases: list = list()
+        self.databases: list[Database[T]] = list()
 
     @cancelable_operation
     def _create_database(self, db_name: str) -> None:
@@ -102,13 +103,15 @@ class Syntax_interpreter(ABC):
         :return: None
         """
         try:
-            new_database = Database(db_name)
-            self.databases.append(new_database)
+            if isinstance(D, Database):
+                new_database = D(db_name)
+                self.databases.append(new_database)
+            else:
+                raise Exception('Unknown Database type')
         except Exception as e:
             print(f'An exception occurred while creating database - {e}')
 
     @cancelable_operation
-    @abstractmethod
     def synchronize(self) -> None:
         """
         Method for synchronizing device files and database tables
@@ -297,7 +300,7 @@ class Syntax_interpreter(ABC):
             raise SyntaxInterpreterException(f'Update parsing error: {e}')
 
     @log
-    def __extract_entity_params(self, lexemes: list[str], entity_name: str) -> dict:
+    def __extract_entity_params(self, lexemes: list[str], entity_name: str) -> dict[str, str]:
         """
         Extract parameters from Entity(param1=value1, param2=value2) syntax.
         :param lexemes: list of lexemes from sentence
@@ -312,7 +315,7 @@ class Syntax_interpreter(ABC):
             return {}
 
         params_str = match.group(1)
-        params = {}
+        params: dict[str, str] = {}
 
         # Parse key=value pairs
         for pair in params_str.split(','):
@@ -326,9 +329,10 @@ class Syntax_interpreter(ABC):
         return params
 
     @log
-    def __parse_add_operator(self, lexemes: list[str]):
+    def __parse_add_operator(self, lexemes: list[str]) -> None:
         """
        Parse add operator: add Record(name='...') in Table(name='...')
+       :param lexemes: list of lexemes
        """
 
         try:
@@ -348,15 +352,7 @@ class Syntax_interpreter(ABC):
             if table is None:
                 raise SyntaxInterpreterException(f'Table not found: {table_name}')
 
-            from specification.v1.entities.Record import Record
-
-            new_record = Record(
-                identifier=self.__generate_id(table),
-                book_name=record_params.get('name', ''),
-                book_category=record_params.get('category', ''),
-                read_date=record_params.get('read_date', ''),
-                book_type=record_params.get('type', 'text')
-            )
+            new_record = R()
             table.add_record(new_record)
 
         except Exception as e:
@@ -388,7 +384,7 @@ class Syntax_interpreter(ABC):
         """
         Find table in database by name.
         """
-        for table in database.get_tables():
+        for table in database.get_all_tables():
             if table.get_table_name() == table_name:
                 return table
         return None
@@ -430,9 +426,8 @@ class Syntax_interpreter(ABC):
         """
         Create and add record to table.
         """
-        from specification.v1.entities.Record import Record
 
-        record = Record(
+        record = R(
             identifier=self.__generate_id(table),
             book_name=params.get('name', ''),
             book_category=params.get('category', ''),
@@ -484,7 +479,7 @@ class Syntax_interpreter(ABC):
 
     class Static_expressions:
         """
-        Static BQL expressions to use;
+        Static custom query language expressions to use;
         Can be used in web interface (auto mode) or console without interactive interpreter;
         """
 
@@ -500,7 +495,7 @@ class Syntax_interpreter(ABC):
             Add record with lite parameters, only name
             :param rec_name: Record name (name of the book)
             :param table_name: Table to insert
-            :return:
+            :return: complete sentence
             """
             return f'add Record(name={rec_name} in Table(name={table_name})'
 
@@ -520,5 +515,15 @@ class Syntax_interpreter(ABC):
 
         @staticmethod
         @log
-        def remove_record() -> str:
+        def remove_record(rec_name: str, table_name: str) -> str:
+            """
+            Complete remove record sentence
+            :param rec_name: record name
+            :param table_name: table name
+            :return: String object with remove record
+            """
             return f''
+
+
+class Syntax_builder_chain:
+    pass
