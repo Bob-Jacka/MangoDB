@@ -1,10 +1,10 @@
-# DB_api specification
+# **MangoDB**
 
-Custom specification for custom databases to use custom actions
+Custom specification for custom databases to use custom actions, also include MangoDB realization
 
-Version: 1.1.0
+Version: 2.0.0
 
-## Commands:
+## **Commands**:
 
 1) To build library:
 
